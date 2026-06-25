@@ -30,29 +30,39 @@ def extract_url(text: str) -> str | None:
     return match.group(0) if match else None
 
 def download_video(url: str, output_dir: str) -> str:
+    is_tiktok = "tiktok.com" in url
+
     ydl_opts = {
         "format": "best[ext=mp4]/best",
         "outtmpl": os.path.join(output_dir, "%(id)s.%(ext)s"),
         "merge_output_format": "mp4",
         "quiet": False,
-        "http_headers": {
-            "User-Agent": (
-                "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
-                "AppleWebKit/605.1.15 (KHTML, like Gecko) "
-                "Version/17.0 Mobile/15E148 Safari/604.1"
-            ),
-        },
-        # "cookiesfrombrowser": ("chrome",),  # раскомментируй если нужны cookies
-        # "cookiefile": "cookies.txt",
-        "extractor_args": {
-            "tiktok": {
-                "webpage_download": True,
-                "api_hostname": "api22-normal-c-useast2a.tiktokv.com",
-            }
-        },
         "socket_timeout": 30,
-        "retries": 5,
+        "retries": 10,
+        "fragment_retries": 10,
     }
+
+    if is_tiktok:
+        ydl_opts.update({
+            "http_headers": {
+                "User-Agent": "com.zhiliaoapp.musically/2022600030 (Linux; U; Android 12; en_US; Pixel 6; Build/SD1A.210817.036; Cronet/58.0.2991.0)",
+                "Referer": "https://www.tiktok.com/",
+            },
+            "cookiefile": "cookies.txt",
+            "extractor_args": {
+                "tiktok": {"webpage_download": True}
+            },
+        })
+    else:
+        ydl_opts.update({
+            "http_headers": {
+                "User-Agent": (
+                    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
+                    "AppleWebKit/605.1.15 (KHTML, like Gecko) "
+                    "Version/17.0 Mobile/15E148 Safari/604.1"
+                ),
+            },
+        })
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=True)
