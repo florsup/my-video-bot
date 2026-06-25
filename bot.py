@@ -10,7 +10,8 @@ def download_logic(url: str, msg_id: int) -> str:
     outtmpl = f"video_{msg_id}.%(ext)s"
     
     ydl_opts = {
-        'format': 'bestvideo+bestaudio/best',
+        # Принудительно ищем вертикальный оригинал (mp4) и лучший звук (m4a)
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
         'outtmpl': outtmpl,
         'merge_output_format': 'mp4',
         'prefer_ffmpeg': True,
