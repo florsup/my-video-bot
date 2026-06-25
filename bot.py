@@ -9,24 +9,24 @@ async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
    url = update.message.text
    
    if not any(x in url for x in ["youtube.com", "youtu.be", "tiktok.com", "instagram.com"]):
-       await update.message.reply_text("❌ Отправь ссылку с YouTube, TikTok или Instagram")
+       await update.message.reply_text("❌ Отправьте ссылку с YouTube, TikTok или Instagram")
        return
    
-   await update.message.reply_text("⏳ Скачиваю видео в высоком качестве, подожди...")
+   await update.message.reply_text("⏳ Скачиваю видео, подождите...")
    
    try:
        ydl_opts = {
-           'format': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best',
+           'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
            'outtmpl': 'video.%(ext)s',
            'merge_output_format': 'mp4',
            'cookiefile': 'www.youtube.com_cookies.txt',
+           'prefer_ffmpeg': True,
+           'geo_bypass': True,
+           'nocheckcertificate': True,
            'postprocessors': [{
                'key': 'FFmpegVideoConvertor',
                'preferedformat': 'mp4',
            }],
-           'prefer_ffmpeg': True,
-           'geo_bypass': True,
-           'nocheckcertificate': True,
        }
        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
            info = ydl.extract_info(url, download=True)
@@ -34,13 +34,13 @@ async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
        
        size = os.path.getsize(filename)
        if size > 50 * 1024 * 1024:
-           await update.message.reply_text("❌ Видео слишком большое (больше 50MB), попробуй короткое видео")
+           await update.message.reply_text("❌ Видео слишком большое (больше 50MB)")
            os.remove(filename)
            return
        
        await update.message.reply_text("✅ Готово! Отправляю...")
        with open(filename, 'rb') as f:
-           await update.message.reply_video(f)
+           await update.message.reply_document(f, filename="video.mp4")
        os.remove(filename)
        
    except Exception as e:
